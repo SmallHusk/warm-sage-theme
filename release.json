@@ -1,0 +1,10 @@
+{
+  "name": "warm-sage",
+  "displayName": "Warm Sage",
+  "zedId": "warm-sage-theme",
+  "version": "1.0.0",
+  "author": "smallhusk",
+  "publisher": "smallhusk",
+  "repository": "https://github.com/SmallHusk/warm-sage-theme",
+  "license": "MIT"
+}

@@ -1,0 +1,52 @@
+{
+  "name": "warm-sage",
+  "displayName": "Warm Sage",
+  "version": "1.0.0",
+  "description": "Muted brown surfaces, cream text, and sage accents for a warm, readable editor.",
+  "publisher": "smallhusk",
+  "author": {
+    "name": "smallhusk"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "brown",
+    "sage",
+    "warm",
+    "dark",
+    "muted",
+    "earthy"
+  ],
+  "license": "MIT",
+  "extensionKind": [
+    "ui"
+  ],
+  "pricing": "Free",
+  "icon": "assets/icon.png",
+  "galleryBanner": {
+    "color": "#352e29",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SmallHusk/warm-sage-theme.git",
+    "directory": "vscode"
+  },
+  "homepage": "https://github.com/SmallHusk/warm-sage-theme#readme",
+  "bugs": {
+    "url": "https://github.com/SmallHusk/warm-sage-theme/issues"
+  },
+  "contributes": {
+    "themes": [
+      {
+        "label": "Warm Sage",
+        "uiTheme": "vs-dark",
+        "path": "./themes/warm-sage-color-theme.json"
+      }
+    ]
+  }
+}

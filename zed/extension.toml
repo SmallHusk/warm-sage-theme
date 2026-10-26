@@ -1,0 +1,7 @@
+id = "warm-sage-theme"
+name = "Warm Sage"
+version = "1.0.0"
+schema_version = 1
+authors = ["smallhusk"]
+description = "Muted brown surfaces, cream text, and sage accents."
+repository = "https://github.com/SmallHusk/warm-sage-theme"

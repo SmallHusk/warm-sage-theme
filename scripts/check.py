@@ -23,6 +23,7 @@ vscode = load('vscode/package.json')
 zed_manifest = tomllib.loads((ROOT / 'zed/extension.toml').read_text())
 zed = load('zed/themes/warm-sage.json')
 theme = load('vscode/themes/warm-sage-color-theme.json')
+firefox = load('firefox/manifest.json')
 
 assert re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', meta['zedId'])
 assert meta['zedId'].endswith('-theme')
@@ -44,7 +45,33 @@ assert theme['name'] == zed['themes'][0]['name'] == meta['displayName']
 assert theme['colors']['editor.background'] == zed['themes'][0]['style']['editor.background'] == palette['base']
 assert theme['colors']['editor.foreground'] == zed['themes'][0]['style']['editor.foreground'] == palette['text']
 
-for package in ['vscode', 'zed']:
+assert firefox['manifest_version'] == 2
+assert firefox['name'] == meta['displayName']
+assert firefox['version'] == meta['version']
+assert firefox['author'] == meta['author']
+assert firefox['homepage_url'] == meta['repository']
+gecko = firefox['browser_specific_settings']['gecko']
+assert gecko['id'] == meta['firefoxId']
+assert re.fullmatch(r'[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+', gecko['id'])
+assert gecko['strict_min_version'] == '100.0'
+# A static theme must not gain executable code or browser permissions.
+assert set(firefox) == {
+    'manifest_version', 'name', 'version', 'author', 'description',
+    'homepage_url', 'icons', 'browser_specific_settings', 'theme',
+}
+assert firefox['theme']['properties'] == {'color_scheme': 'dark', 'content_color_scheme': 'dark'}
+firefox_colors = firefox['theme']['colors']
+assert firefox_colors['frame'] == palette['backdrop']
+assert firefox_colors['toolbar'] == firefox_colors['ntp_background'] == palette['base']
+assert firefox_colors['tab_line'] == firefox_colors['toolbar_field_border_focus'] == palette['sage']
+for name, color in firefox_colors.items():
+    assert re.fullmatch(r'#[\da-fA-F]{6}', color), (name, color)
+    assert color in {value for value in palette.values() if isinstance(value, str)}, (name, color)
+for size, icon in firefox['icons'].items():
+    data = (ROOT / 'firefox' / icon).read_bytes()
+    assert struct.unpack('>II', data[16:24]) == (int(size), int(size))
+
+for package in ['vscode', 'zed', 'firefox']:
     folder = ROOT / package
     assert (folder / 'LICENSE').read_bytes() == (ROOT / 'LICENSE').read_bytes()
     assert (folder / 'CHANGELOG.md').read_bytes() == (ROOT / 'CHANGELOG.md').read_bytes()
@@ -92,6 +119,16 @@ for capture, style in zed['themes'][0]['style']['syntax'].items():
 for color in [palette['text'], palette['muted'], palette['sage']]:
     assert contrast(color, palette['surface']) >= 4.5
 assert contrast(palette['text'], palette['selection_solid']) >= 4.5
+for foreground, background in [
+    ('tab_background_text', 'frame'), ('tab_text', 'tab_selected'),
+    ('toolbar_text', 'toolbar'), ('bookmark_text', 'toolbar'),
+    ('toolbar_field_text', 'toolbar_field'), ('toolbar_field_text_focus', 'toolbar_field_focus'),
+    ('toolbar_field_highlight_text', 'toolbar_field_highlight'),
+    ('popup_text', 'popup'), ('popup_highlight_text', 'popup_highlight'),
+    ('sidebar_text', 'sidebar'), ('sidebar_highlight_text', 'sidebar_highlight'),
+    ('ntp_text', 'ntp_background'), ('ntp_text', 'ntp_card_background'),
+]:
+    assert contrast(firefox_colors[foreground], firefox_colors[background]) >= 4.5, foreground
 
 if args.zed_schema:
     import jsonschema
@@ -99,4 +136,4 @@ if args.zed_schema:
     jsonschema.Draft7Validator(schema).validate(zed)
     assert not set(zed['themes'][0]['style']) - set(schema['definitions']['ThemeStyleContent']['properties'])
     print('Official Zed schema validation passed.')
-print('Release metadata, MIT licenses, PNG assets, syntax contrast, terminal colors, and package paths passed.')
+print('Release metadata, MIT licenses, PNG assets, editor and Firefox contrast, terminal colors, and package paths passed.')

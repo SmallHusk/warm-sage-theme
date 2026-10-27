@@ -1,0 +1,8 @@
+[Unit]
+Description=Warm Niri desktop components
+PartOf=niri.service
+After=graphical-session.target
+Wants=niri-wallpaper-rotate.timer niri-satty.service niri-clipboard.service waybar.service swaync.service niri-osd.service niri-wallpaper.service niri-idle.service niri-polkit.service
+
+[Install]
+WantedBy=niri.service

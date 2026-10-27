@@ -1,0 +1,159 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 36,
+    "spacing": 2,
+    "reload_style_on_change": true,
+    "margin-top": 8,
+    "margin-left": 10,
+    "margin-right": 10,
+    "modules-left": [
+        "custom/launcher",
+        "niri/workspaces",
+        "niri/window",
+        "mpris"
+    ],
+    "modules-center": [
+        "clock",
+        "custom/weather"
+    ],
+    "modules-right": [
+        "tray",
+        "idle_inhibitor",
+        "custom/notifications",
+        "network",
+        "backlight",
+        "pulseaudio",
+        "battery",
+        "custom/lock",
+        "custom/power"
+    ],
+    "custom/launcher": {
+        "format": "",
+        "tooltip-format": "Applications · Super+D",
+        "on-click": "fuzzel"
+    },
+    "niri/workspaces": {
+        "format": "{index}",
+        "all-outputs": false
+    },
+    "niri/window": {
+        "format": "{}",
+        "max-length": 14,
+        "tooltip": false
+    },
+    "mpris": {
+        "format": "{status_icon} {dynamic}",
+        "format-paused": "{status_icon} {dynamic}",
+        "format-stopped": "",
+        "dynamic-order": ["title", "artist"],
+        "dynamic-importance-order": ["title", "artist"],
+        "dynamic-separator": " · ",
+        "dynamic-len": 20,
+        "title-len": 20,
+        "artist-len": 12,
+        "max-length": 23,
+        "status-icons": {
+            "playing": "",
+            "paused": "",
+            "stopped": ""
+        },
+        "tooltip-format": "{title}\n{artist}\n\nClick: play/pause · Right-click: next\nMiddle-click: previous"
+    },
+    "clock": {
+        "format": "{:%a %d %b  ·  %H:%M}",
+        "format-alt": "{:%Y-%m-%d  ·  %H:%M}",
+        "tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+    "custom/weather": {
+        "exec": "~/.config/niri/scripts/weather --bar",
+        "return-type": "json",
+        "interval": 600,
+        "signal": 8,
+        "on-click": "~/.config/niri/scripts/weather --panel",
+        "on-click-right": "~/.config/niri/scripts/weather --refresh",
+        "exec-on-event": false
+    },
+    "tray": {
+        "icon-size": 16,
+        "spacing": 8
+    },
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "",
+            "deactivated": ""
+        },
+        "tooltip-format-activated": "Keep awake: on",
+        "tooltip-format-deactivated": "Keep awake: off"
+    },
+    "custom/notifications": {
+        "exec": "~/.config/niri/scripts/notification-status",
+        "return-type": "json",
+        "interval": 3,
+        "on-click": "swaync-client --toggle-panel",
+        "on-click-right": "swaync-client --toggle-dnd",
+        "on-click-middle": "swaync-client --hide-all"
+    },
+    "network": {
+        "format-wifi": "",
+        "format-ethernet": "",
+        "format-disconnected": "",
+        "tooltip-format-wifi": "{essid} · {signalStrength}%\n{ipaddr}",
+        "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
+        "tooltip-format-disconnected": "Disconnected · click to configure",
+        "on-click": "nm-connection-editor"
+    },
+    "backlight": {
+        "format": " {percent}%",
+        "device": "amdgpu_bl1",
+        "on-scroll-up": "brightnessctl --class=backlight set +5%",
+        "on-scroll-down": "brightnessctl --class=backlight --min-value=1 set 5%-"
+    },
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": " Muted",
+        "format-icons": {
+            "headphone": "",
+            "default": [
+                "",
+                "",
+                ""
+            ]
+        },
+        "scroll-step": 5,
+        "max-volume": 100,
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "tooltip-format": "{desc}"
+    },
+    "battery": {
+        "bat": "BAT1",
+        "interval": 30,
+        "states": {
+            "warning": 25,
+            "critical": 10
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": " {capacity}%",
+        "format-full": " {capacity}%",
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        "tooltip-format": "{capacity}% · {timeTo}"
+    },
+    "custom/lock": {
+        "format": "",
+        "tooltip-format": "Lock · Super+Alt+L",
+        "on-click": "~/.config/niri/scripts/lock-screen"
+    },
+    "custom/power": {
+        "format": "",
+        "tooltip-format": "Session menu · Super+P",
+        "on-click": "~/.config/niri/scripts/session-menu"
+    }
+}

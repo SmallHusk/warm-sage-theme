@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Satty Clipboard
+Comment=Annotate the image currently in the clipboard
+Exec=/home/lorenzo/.config/niri/scripts/satty-helper clipboard
+Icon=satty
+Terminal=false
+Categories=Graphics;
+Keywords=Screenshot;Annotate;Clipboard;Image;

@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Open copied images in Satty, or follow Niri's completed screenshot events."""
+import json
+import os
+from pathlib import Path
+import socket
+import subprocess
+import sys
+
+
+def notify(message):
+    subprocess.run(['notify-send', '-a', 'Satty', 'Image annotation', message],
+                   check=False, timeout=5)
+
+
+def open_clipboard():
+    try:
+        result = subprocess.run(['wl-paste', '--list-types'],
+                                capture_output=True, text=True, timeout=5)
+        offered = result.stdout.splitlines()
+        mime = next((kind for kind in ('image/png', 'image/jpeg', 'image/webp',
+                                      'image/tiff', 'image/bmp', 'image/gif')
+                     if kind in offered), None)
+        if mime is None:
+            notify('Copy an image first, then press Super+Alt+A.')
+            return 1
+        image = subprocess.run(['wl-paste', '--no-newline', '--type', mime],
+                               capture_output=True, timeout=10)
+        if image.returncode or not image.stdout:
+            notify('Could not read the copied image. Try copying it again.')
+            return 1
+        return subprocess.run(['satty', '--filename', '-'],
+                              input=image.stdout, check=False).returncode
+    except subprocess.TimeoutExpired:
+        notify('Reading the clipboard timed out. Try copying the image again.')
+        return 1
+
+
+def screenshot_command(event):
+    """Ignore unrelated events and open only completed screenshots."""
+    if not isinstance(event, dict) or 'ScreenshotCaptured' not in event:
+        return None
+    path = event['ScreenshotCaptured'].get('path')
+    helper = str(Path(__file__).resolve())
+    return [helper, 'open', path] if path else [helper, 'clipboard']
+
+
+def watch():
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+        connection.connect(os.environ['NIRI_SOCKET'])
+        connection.sendall(b'"EventStream"\n')
+        with connection.makefile('r', encoding='utf-8') as events:
+            reply = json.loads(events.readline())
+            if 'Ok' not in reply:
+                raise RuntimeError('Niri refused the screenshot event subscription')
+            print('Listening for completed Niri screenshots', flush=True)
+            for line in events:
+                command = screenshot_command(json.loads(line))
+                if command:
+                    # Niri gives the editor its own application scope, independent
+                    # of this service. Clipboard changes from Satty do not loop.
+                    subprocess.run(['niri', 'msg', 'action', 'spawn', '--', *command],
+                                   check=True, timeout=5)
+    raise RuntimeError('Niri screenshot event stream disconnected')
+
+
+def main():
+    if sys.argv[1:] == ['clipboard']:
+        return open_clipboard()
+    if sys.argv[1:] == ['watch']:
+        watch()
+    elif len(sys.argv) == 3 and sys.argv[1] == 'open':
+        return subprocess.run(['satty', '--filename', sys.argv[2]],
+                              check=False).returncode
+    else:
+        raise SystemExit('Usage: satty-helper clipboard | watch | open IMAGE')
+
+
+if __name__ == '__main__':
+    sys.exit(main())

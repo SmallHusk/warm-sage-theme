@@ -1,0 +1,42 @@
+# Warm Sage: shared desktop palette; see ~/.config/niri/README.md.
+[window]
+opacity = 0.88
+padding = { x = 12, y = 12 }
+dynamic_padding = true
+decorations = "None"
+
+[font]
+normal = { family = "Adwaita Mono", style = "Regular" }
+size = 11.5
+
+[colors.primary]
+background = "#352e29"
+foreground = "#e8dfd1"
+
+[colors.cursor]
+text = "#352e29"
+cursor = "#b7c99a"
+
+[colors.selection]
+text = "#e8dfd1"
+background = "#3f4938"
+
+[colors.normal]
+black = "#403831"
+red = "#d98478"
+green = "#b7c99a"
+yellow = "#d4b477"
+blue = "#91a7b0"
+magenta = "#b49aaa"
+cyan = "#93a58c"
+white = "#d6cbbb"
+
+[colors.bright]
+black = "#807366"
+red = "#edaa9b"
+green = "#cbd5b6"
+yellow = "#e8cd9b"
+blue = "#b1c6cc"
+magenta = "#ceb2c1"
+cyan = "#bfccb4"
+white = "#f3e9db"

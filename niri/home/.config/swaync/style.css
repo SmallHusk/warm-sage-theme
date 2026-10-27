@@ -1,0 +1,175 @@
+/* Warm Sage. Keep upstream layout and override the desktop's color roles. */
+@import url("/etc/xdg/swaync/style.css");
+
+:root {
+  --cc-bg: rgba(53, 46, 41, 0.92);
+  --noti-bg: 64, 56, 49;
+  --noti-bg-alpha: 0.92;
+  --noti-bg-darker: #29231f;
+  --noti-bg-hover: #51483f;
+  --noti-bg-focus: #3f4938;
+  --noti-border-color: #65594e;
+  --noti-close-bg: #51483f;
+  --noti-close-bg-hover: #65594e;
+  --text-color: #e8dfd1;
+  --text-color-disabled: #b2a496;
+  --bg-selected: #b7c99a;
+  --border: 1px solid #65594e;
+  --border-radius: 12px;
+  --notification-icon-size: 40px;
+  --notification-group-icon-size: 24px;
+  --font-size-body: 13px;
+  --font-size-summary: 14px;
+  --notification-shadow: none;
+}
+
+* {
+  font-family: "Adwaita Sans";
+  font-size: 13px;
+  text-shadow: none;
+}
+
+.control-center {
+  border: 1px solid #65594e;
+  border-radius: 16px;
+  padding: 8px;
+}
+
+.widget-title {
+  margin: 4px 6px 0;
+  padding: 10px 8px;
+}
+
+.widget-title > label {
+  color: #e8dfd1;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.widget-title > button,
+.notification-action > button,
+.inline-reply-button {
+  background: #403831;
+  color: #e8dfd1;
+  border: 1px solid #65594e;
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 6px 12px;
+}
+
+.widget-title > button:hover,
+.notification-action > button:hover,
+.inline-reply-button:hover {
+  background: #3f4938;
+  color: #b7c99a;
+  border-color: #b7c99a;
+}
+
+.widget-dnd {
+  background: #403831;
+  border: 1px solid #65594e;
+  border-radius: 10px;
+  margin: 4px 6px 12px;
+  padding: 10px 12px;
+}
+
+.widget-dnd label {
+  font-size: 13px;
+}
+
+.widget-dnd switch {
+  background: #29231f;
+  border: 1px solid #65594e;
+  box-shadow: none;
+  min-width: 40px;
+  min-height: 22px;
+}
+
+.widget-dnd switch:checked {
+  background: #b7c99a;
+  border-color: #b7c99a;
+}
+
+.widget-dnd switch slider {
+  background: #b2a496;
+  border: none;
+  box-shadow: none;
+  min-width: 18px;
+  min-height: 18px;
+  margin: 2px;
+}
+
+.widget-dnd switch:checked slider {
+  background: #352e29;
+}
+
+.floating-notifications {
+  padding-top: 48px;
+}
+
+.floating-notifications .notification-row .notification-background {
+  padding: 6px 10px;
+}
+
+.floating-notifications .notification-row .notification-background .notification {
+  background: rgba(53, 46, 41, 0.92);
+  border-color: #b7c99a;
+}
+
+.notification-group.collapsed .notification-row .notification {
+  background-color: rgba(var(--noti-bg), var(--noti-bg-alpha));
+}
+
+.control-center .notification-row .notification-background {
+  padding: 4px 6px;
+}
+
+.notification-row .notification-background .notification .notification-default-action {
+  padding: 10px;
+}
+
+.notification-row .notification-background .notification .notification-default-action .notification-content .text-box .time {
+  font-size: 11px;
+  font-weight: normal;
+  color: #b2a496;
+}
+
+.notification-row .notification-background .notification.critical {
+  border-color: #d98478;
+  border-width: 2px;
+}
+
+.notification-group .notification-group-headers .notification-group-header {
+  color: #b7c99a;
+  font-weight: 600;
+}
+
+.control-center .control-center-list-placeholder {
+  color: #b2a496;
+  opacity: 1;
+}
+
+.close-button:hover {
+  background: #d98478;
+  color: #29231f;
+}
+
+button:focus-visible,
+switch:focus-visible {
+  outline: 2px solid #b7c99a;
+  outline-offset: 2px;
+}
+
+scrollbar {
+  background: transparent;
+}
+
+scrollbar slider {
+  background: #65594e;
+  border-radius: 8px;
+  min-width: 4px;
+}
+
+scrollbar slider:hover {
+  background: #b2a496;
+}

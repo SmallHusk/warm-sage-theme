@@ -6,3 +6,4 @@
 - Muted brown surfaces, cream foregrounds, sage accents, and moss selections.
 - Matching syntax highlighting, diagnostics, Git decorations, and terminal colors.
 - TextMate and semantic highlighting support in VS Code.
+- Matching static Firefox theme, with local loading instructions and a submission ZIP.

@@ -1,0 +1,9 @@
+[Unit]
+Description=Choose the next Niri wallpaper
+PartOf=niri-desktop.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl --user try-restart niri-wallpaper.service

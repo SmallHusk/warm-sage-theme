@@ -36,7 +36,7 @@ def zip_files(destination, prefix, paths):
     with ZipFile(destination, 'w', compression=ZIP_DEFLATED) as archive:
         for file, name in sorted(paths, key=lambda entry: entry[1]):
             assert file.is_file() and not file.is_symlink(), file
-            archive.write(file, prefix + '/' + name)
+            archive.write(file, prefix + '/' + name if prefix else name)
 
 
 zed_files = [(path, path.relative_to(ROOT / 'zed').as_posix())
@@ -44,18 +44,24 @@ zed_files = [(path, path.relative_to(ROOT / 'zed').as_posix())
 zed_zip = dist / f'warm-sage-zed-{version}.zip'
 zip_files(zed_zip, f'warm-sage-zed-{version}', zed_files)
 
+firefox_files = [(path, path.relative_to(ROOT / 'firefox').as_posix())
+                 for path in (ROOT / 'firefox').rglob('*') if path.is_file()]
+firefox_zip = dist / f'warm-sage-firefox-{version}.zip'
+# Firefox/AMO requires manifest.json at the archive root.
+zip_files(firefox_zip, '', firefox_files)
+
 source_files = []
 for name in ['README.md', 'LICENSE', 'CHANGELOG.md', 'PUBLISHING.md', '.gitignore',
              'release.json', 'palette.json', 'package.json', 'package-lock.json']:
     source_files.append((ROOT / name, name))
-for name in ['scripts', 'assets', 'vscode', 'zed']:
+for name in ['scripts', 'assets', 'vscode', 'zed', 'firefox', 'niri']:
     for path in (ROOT / name).rglob('*'):
         if path.is_file() and '__pycache__' not in path.parts:
             source_files.append((path, path.relative_to(ROOT).as_posix()))
 source_zip = dist / f'warm-sage-source-{version}.zip'
 zip_files(source_zip, 'warm-sage-themes', source_files)
 
-artifacts = [vsix, zed_zip, source_zip]
+artifacts = [vsix, zed_zip, firefox_zip, source_zip]
 checksums = dist / 'SHA256SUMS'
 checksums.write_text(''.join(f'{sha256(path.read_bytes()).hexdigest()}  {path.name}\n' for path in artifacts))
 for path in artifacts + [checksums]:

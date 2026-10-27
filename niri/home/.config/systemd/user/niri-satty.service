@@ -1,0 +1,10 @@
+[Unit]
+Description=Open completed Niri screenshots in Satty
+PartOf=niri-desktop.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=%h/.config/niri/scripts/satty-helper watch
+Restart=on-failure
+RestartSec=3

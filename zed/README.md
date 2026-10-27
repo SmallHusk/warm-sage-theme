@@ -20,7 +20,7 @@ Extensions view and select this `zed` directory.
 
 ## Source and feedback
 
-The shared palette, matching VS Code theme, and build tools live in the
+The shared palette, matching VS Code and Firefox themes, and build tools live in the
 [Warm Sage repository](https://github.com/SmallHusk/warm-sage-theme).
 Please report problems through its issue tracker.
 

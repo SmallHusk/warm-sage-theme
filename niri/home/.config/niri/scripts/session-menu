@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+choice=$(printf '%s
+' 'Lock' 'Suspend' 'Log out' 'Restart' 'Power off' |
+    fuzzel --dmenu --only-match --prompt 'Session  ' --lines 5 --width 26) || exit 0
+
+confirm() {
+    local answer
+    answer=$(printf '%s
+' 'Cancel' "$1" |
+        fuzzel --dmenu --only-match --prompt 'Confirm  ' --lines 2 --width 26) || return 1
+    [[ "$answer" == "$1" ]]
+}
+
+case "$choice" in
+    Lock) ~/.config/niri/scripts/lock-screen ;;
+    Suspend) ~/.config/niri/scripts/lock-screen && systemctl suspend ;;
+    'Log out') niri msg action quit ;;
+    Restart) if confirm Restart; then systemctl reboot; fi ;;
+    'Power off') if confirm 'Power off'; then systemctl poweroff; fi ;;
+esac

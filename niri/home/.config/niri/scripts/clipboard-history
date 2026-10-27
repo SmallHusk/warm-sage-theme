@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v cliphist >/dev/null; then
+    notify-send -a Clipboard 'Clipboard history unavailable' 'Install cliphist to enable clipboard history.'
+    exit 1
+fi
+
+selection=$(cliphist list | fuzzel --dmenu --only-match --no-run-if-empty \
+    --with-nth 2 --prompt 'Clipboard  ' --placeholder 'Search copied items') || exit 0
+[[ -n "$selection" ]] || exit 0
+
+# Decode before replacing the clipboard so cancellation or errors leave it intact.
+item=$(mktemp "${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/niri-clipboard.XXXXXX")
+trap 'rm -f -- "$item"' EXIT
+printf '%s\n' "$selection" | cliphist decode > "$item"
+wl-copy < "$item"

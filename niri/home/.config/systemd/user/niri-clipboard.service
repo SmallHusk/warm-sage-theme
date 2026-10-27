@@ -1,0 +1,11 @@
+[Unit]
+Description=Niri clipboard history
+PartOf=niri-desktop.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/wl-paste --watch /usr/bin/cliphist -max-items 250 store
+UMask=0077
+Restart=on-failure
+RestartSec=3

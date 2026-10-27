@@ -1,0 +1,10 @@
+[Unit]
+Description=Warm Sage on-screen volume and brightness indicators
+PartOf=niri-desktop.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/swayosd-server
+Restart=on-failure
+RestartSec=3

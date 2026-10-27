@@ -1,0 +1,10 @@
+[Unit]
+Description=Niri random wallpaper
+PartOf=niri-desktop.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=%h/.config/niri/scripts/wallpaper-random
+Restart=on-failure
+RestartSec=3

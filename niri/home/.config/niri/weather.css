@@ -1,0 +1,74 @@
+window.weather-window {
+  background: transparent;
+}
+.weather-panel {
+  background: rgba(53, 46, 41, 0.94);
+  color: #e8dfd1;
+  border: 1px solid #65594e;
+  border-radius: 16px;
+  padding: 20px;
+  font-family: "Adwaita Sans";
+  font-size: 13px;
+}
+.weather-panel label { color: #e8dfd1; }
+.weather-panel .city { font-size: 22px; font-weight: 700; }
+.weather-panel .muted { color: #b2a496; font-size: 11px; }
+.weather-panel .warning { color: #d4b477; font-size: 12px; }
+.weather-panel .current { padding: 8px 0; }
+.weather-panel .temperature { font-size: 42px; font-weight: 600; }
+.weather-panel .hero-icon,
+.weather-panel .weather-icon {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  color: #b7c99a;
+  font-size: 20px;
+}
+.weather-panel .hero-icon { font-size: 46px; min-width: 62px; }
+.weather-panel .metric {
+  background: rgba(64, 56, 49, 0.9);
+  border: 1px solid #65594e;
+  border-radius: 10px;
+  padding: 10px;
+}
+.weather-panel .caption { color: #b2a496; font-size: 9px; letter-spacing: 0.5px; }
+.weather-panel .metric-value { font-size: 14px; font-weight: 600; }
+.weather-panel .section-title {
+  color: #b7c99a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+.weather-panel .hour { padding: 4px 0; }
+.weather-panel .rain { color: #91a7b0; font-size: 11px; }
+.weather-panel .days {
+  background: rgba(64, 56, 49, 0.75);
+  border: 1px solid #65594e;
+  border-radius: 10px;
+  padding: 4px 10px;
+}
+.weather-panel .day { padding: 7px 0; }
+.weather-panel .day .weather-icon { font-size: 15px; min-width: 24px; }
+.weather-panel button {
+  background: #403831;
+  background-image: none;
+  color: #e8dfd1;
+  border: 1px solid #65594e;
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 6px;
+  min-height: 20px;
+  min-width: 20px;
+}
+.weather-panel button:hover { background: #3f4938; border-color: #b7c99a; }
+.weather-panel button:disabled { opacity: 0.5; }
+.weather-panel button:focus-visible { outline: 2px solid #b7c99a; outline-offset: 2px; }
+.weather-panel button.link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-height: 0;
+  color: #b7c99a;
+  font-size: 11px;
+}
+.weather-panel button.link label { color: #b7c99a; font-size: 11px; }

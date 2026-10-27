@@ -1,0 +1,17 @@
+[general]
+app-id = "org.satty.satty"
+fullscreen = false
+resize = { mode = "smart" }
+initial-tool = "arrow"
+copy-command = "wl-copy --type image/png"
+output-filename = "~/Pictures/Screenshots/Annotated-%Y-%m-%d_%H-%M-%S-%f.png"
+actions-on-enter = ["save-to-clipboard", "exit"]
+actions-on-escape = ["exit"]
+early-exit = []
+auto-copy = false
+
+[font]
+family = "Adwaita Sans"
+
+[color-palette]
+palette = ["#a8b58bff", "#a8795cff", "#e8dfd1ff", "#d98478ff", "#91a7b0ff", "#25211eff", "#ffffffff"]

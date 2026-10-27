@@ -1,0 +1,60 @@
+/* Warm Sage: translucent brown, cream labels, and sage progress bars. */
+window#osd {
+  background: rgba(53, 46, 41, 0.92);
+  border: 1px solid #b7c99a;
+  border-radius: 14px;
+  color: #e8dfd1;
+}
+
+window#osd #container {
+  margin: 16px 20px;
+}
+
+window#osd image,
+window#osd label {
+  font-family: "Adwaita Sans";
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8dfd1;
+}
+
+window#osd progressbar,
+window#osd segmentedprogress {
+  min-height: 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+}
+
+window#osd trough,
+window#osd segment {
+  min-height: 6px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: #65594e;
+}
+
+window#osd progress,
+window#osd segment.active {
+  min-height: 6px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: #b7c99a;
+}
+
+window#osd progressbar:disabled,
+window#osd image:disabled {
+  opacity: 0.5;
+}
+
+window#osd segment {
+  margin-left: 8px;
+}
+
+window#osd segment:first-child {
+  margin-left: 0;
+}

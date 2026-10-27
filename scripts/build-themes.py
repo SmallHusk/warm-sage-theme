@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build matching editor themes and public extension manifests."""
+"""Build matching editor and browser themes and public extension manifests."""
 import json
 from pathlib import Path
 import shutil
@@ -316,11 +316,47 @@ write_json(ROOT / 'vscode/package.json', {
     'description = "Muted brown surfaces, cream text, and sage accents."',
     f'repository = {json.dumps(M["repository"])}', '',
 ]))
-for package in ['vscode', 'zed']:
+write_json(ROOT / 'firefox/manifest.json', {
+    'manifest_version': 2,
+    'name': M['displayName'], 'version': M['version'], 'author': M['author'],
+    'description': 'Muted brown surfaces, cream text, and sage accents for Firefox.',
+    'homepage_url': M['repository'],
+    'icons': {'256': 'assets/icon.png'},
+    'browser_specific_settings': {'gecko': {
+        'id': M['firefoxId'], 'strict_min_version': '100.0',
+    }},
+    'theme': {
+        'colors': {
+            'frame': backdrop, 'frame_inactive': backdrop,
+            'tab_background_text': muted, 'tab_selected': base, 'tab_text': text,
+            'tab_line': sage, 'tab_loading': sage,
+            'toolbar': base, 'toolbar_text': text,
+            'bookmark_text': text, 'icons': P['icon'], 'icons_attention': sage,
+            'button_background_hover': surface,
+            'button_background_active': P['selection_solid'],
+            'toolbar_field': backdrop, 'toolbar_field_text': text,
+            'toolbar_field_border': outline,
+            'toolbar_field_focus': surface, 'toolbar_field_text_focus': text,
+            'toolbar_field_border_focus': sage,
+            'toolbar_field_highlight': P['selection_solid'],
+            'toolbar_field_highlight_text': text,
+            'toolbar_top_separator': base, 'toolbar_bottom_separator': outline,
+            'toolbar_vertical_separator': outline,
+            'popup': surface, 'popup_text': text, 'popup_border': outline,
+            'popup_highlight': P['selection_solid'], 'popup_highlight_text': text,
+            'sidebar': backdrop, 'sidebar_text': text, 'sidebar_border': outline,
+            'sidebar_highlight': P['selection_solid'], 'sidebar_highlight_text': text,
+            'ntp_background': base, 'ntp_text': text, 'ntp_card_background': surface,
+        },
+        'properties': {'color_scheme': 'dark', 'content_color_scheme': 'dark'},
+    },
+})
+
+for package in ['vscode', 'zed', 'firefox']:
     for name in ['LICENSE', 'CHANGELOG.md']:
         shutil.copy2(ROOT / name, ROOT / package / name)
     assets = ROOT / package / 'assets'
     assets.mkdir(exist_ok=True)
     for name in ['icon.png', 'preview.png']:
         shutil.copy2(ROOT / 'assets' / name, assets / name)
-print('Built Zed and VS Code themes and synchronized release metadata.')
+print('Built Zed, VS Code, and Firefox themes and synchronized release metadata.')

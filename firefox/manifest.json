@@ -1,0 +1,63 @@
+{
+  "manifest_version": 2,
+  "name": "Warm Sage",
+  "version": "1.0.0",
+  "author": "smallhusk",
+  "description": "Muted brown surfaces, cream text, and sage accents for Firefox.",
+  "homepage_url": "https://github.com/SmallHusk/warm-sage-theme",
+  "icons": {
+    "256": "assets/icon.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "warm-sage@smallhusk",
+      "strict_min_version": "100.0"
+    }
+  },
+  "theme": {
+    "colors": {
+      "frame": "#29231f",
+      "frame_inactive": "#29231f",
+      "tab_background_text": "#b2a496",
+      "tab_selected": "#352e29",
+      "tab_text": "#e8dfd1",
+      "tab_line": "#b7c99a",
+      "tab_loading": "#b7c99a",
+      "toolbar": "#352e29",
+      "toolbar_text": "#e8dfd1",
+      "bookmark_text": "#e8dfd1",
+      "icons": "#d8c8b8",
+      "icons_attention": "#b7c99a",
+      "button_background_hover": "#403831",
+      "button_background_active": "#3f4938",
+      "toolbar_field": "#29231f",
+      "toolbar_field_text": "#e8dfd1",
+      "toolbar_field_border": "#65594e",
+      "toolbar_field_focus": "#403831",
+      "toolbar_field_text_focus": "#e8dfd1",
+      "toolbar_field_border_focus": "#b7c99a",
+      "toolbar_field_highlight": "#3f4938",
+      "toolbar_field_highlight_text": "#e8dfd1",
+      "toolbar_top_separator": "#352e29",
+      "toolbar_bottom_separator": "#65594e",
+      "toolbar_vertical_separator": "#65594e",
+      "popup": "#403831",
+      "popup_text": "#e8dfd1",
+      "popup_border": "#65594e",
+      "popup_highlight": "#3f4938",
+      "popup_highlight_text": "#e8dfd1",
+      "sidebar": "#29231f",
+      "sidebar_text": "#e8dfd1",
+      "sidebar_border": "#65594e",
+      "sidebar_highlight": "#3f4938",
+      "sidebar_highlight_text": "#e8dfd1",
+      "ntp_background": "#352e29",
+      "ntp_text": "#e8dfd1",
+      "ntp_card_background": "#403831"
+    },
+    "properties": {
+      "color_scheme": "dark",
+      "content_color_scheme": "dark"
+    }
+  }
+}

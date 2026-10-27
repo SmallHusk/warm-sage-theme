@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+"""Choose a wallpaper, avoiding the previous image when more are available."""
+import os
+from pathlib import Path
+import random
+import subprocess
+
+folder = Path('/home/lorenzo/Pictures/wallpapers')
+state = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 'niri/wallpaper'
+fallback = ['swaybg', '--color', '#29231f']
+
+if not folder.is_dir():
+    print(f'Wallpaper folder is missing: {folder}; using solid background', flush=True)
+    os.execvp(fallback[0], fallback)
+
+command = ['fd', '--type', 'f', '--follow', '--hidden', '--no-ignore',
+           '--absolute-path', '--print0']
+for extension in ('png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'tif', 'tiff', 'svg'):
+    command.extend(['--extension', extension])
+command.extend(['.', str(folder)])
+result = subprocess.run(command, stdout=subprocess.PIPE, check=True)
+images = [os.fsdecode(path) for path in result.stdout.split(b'\0') if path]
+
+if not images:
+    print(f'No supported images in {folder}; using solid background', flush=True)
+    os.execvp(fallback[0], fallback)
+
+try:
+    previous = state.read_text()
+except FileNotFoundError:
+    previous = None
+candidates = [image for image in images if image != previous] if len(images) > 1 else images
+chosen = random.choice(candidates)
+state.parent.mkdir(parents=True, exist_ok=True)
+temporary = state.with_suffix('.tmp')
+temporary.write_text(chosen)
+temporary.replace(state)
+print(f'Wallpaper: {chosen}', flush=True)
+os.execvp('swaybg', ['swaybg', '--image', chosen, '--mode', 'fill', '--color', '#29231f'])

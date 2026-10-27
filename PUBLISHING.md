@@ -25,8 +25,9 @@ Outputs in `dist/`:
 
 - `warm-sage-1.0.0.vsix`: official `@vscode/vsce` package.
 - `warm-sage-zed-1.0.0.zip`: Zed extension directory with `extension.toml`.
+- `warm-sage-firefox-1.0.0.zip`: unsigned Firefox theme with `manifest.json` at the ZIP root.
 - `warm-sage-source-1.0.0.zip`: clean, portable source tree.
-- `SHA256SUMS`: integrity hashes for those three files.
+- `SHA256SUMS`: integrity hashes for those four files.
 
 Before release, install the VSIX in a clean VS Code profile and install the Zed
 directory as a dev extension. Inspect code in languages you use, selections,
@@ -86,10 +87,35 @@ The Zed extension ID is `warm-sage-theme`, satisfying the theme-specific naming
 rule. The MIT license is present inside `zed/`, as required for a monorepo
 subdirectory extension. This package needs no Rust or WebAssembly code.
 
+## Firefox Add-ons
+
+1. Load `firefox/manifest.json` temporarily through
+   `about:debugging#/runtime/this-firefox`. Test active and inactive tabs/windows,
+   address-bar focus and selection, menus, bookmarks, the sidebar, and a new tab.
+   Temporary installation ends when Firefox restarts.
+2. Optionally validate with Mozilla's official tool:
+
+   ```sh
+   npx --yes web-ext lint --source-dir firefox --warnings-as-errors
+   ```
+
+3. Sign in to the [Firefox Add-ons Developer Hub](https://addons.mozilla.org/developers/)
+   and submit `dist/warm-sage-firefox-1.0.0.zip` as a new theme. Choose listing on
+   Firefox Add-ons or self-distribution, then complete Mozilla's review and signing.
+4. For self-distribution, download the signed `.xpi`. Users can install it through
+   **Install Add-on From File…** in the gear menu of `about:addons`.
+
+The generated ZIP is unsigned. Normal Firefox releases require Mozilla signing
+for permanent installation. The theme contains no scripts or permissions and
+collects no data. Its stable add-on ID is `warm-sage@smallhusk`; set `firefoxId`
+in `release.json` before the first submission if a different ID is needed, and
+keep the assigned ID for subsequent updates. The minimum Firefox version is 100,
+which supports the explicit dark color-scheme properties.
+
 ## Future releases
 
 Update `version` in `release.json` and `package.json`, document the changes in
-`CHANGELOG.md`, and rebuild. The builder synchronizes both extension versions and
+`CHANGELOG.md`, and rebuild. The builder synchronizes all extension versions and
 copies the changelog and license into each package. Use a new version for each
 public release. Attach the packages and checksums to the matching GitHub release.
 
@@ -99,3 +125,5 @@ public release. Attach the packages and checksums to the matching GitHub release
 - [Zed publishing prerequisites](https://zed.dev/docs/extensions/publishing/prerequisites)
 - [Zed publishing guide](https://zed.dev/docs/extensions/publishing/publishing-guide)
 - [Zed license requirements](https://zed.dev/docs/extensions/publishing/license-requirements)
+- [Firefox static theme reference](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/theme)
+- [Mozilla signing and distribution](https://extensionworkshop.com/documentation/publish/signing-and-distribution-overview/)

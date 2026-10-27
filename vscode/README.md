@@ -26,9 +26,9 @@ select the release's `warm-sage-1.0.0.vsix` file.
 Editor preferences, fonts, and file icons are left to your configuration.
 Language grammars and language servers determine which syntax tokens are available.
 
-## Also available for Zed
+## Also available for Zed and Firefox
 
-The matching Zed theme and source palette are in the
+The matching Zed and Firefox themes and source palette are in the
 [Warm Sage repository](https://github.com/SmallHusk/warm-sage-theme).
 
 ## Feedback

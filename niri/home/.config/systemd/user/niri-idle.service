@@ -1,0 +1,10 @@
+[Unit]
+Description=Niri idle locking and display power
+PartOf=niri-desktop.target
+After=graphical-session.target
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/swayidle -w
+Restart=on-failure
+RestartSec=3

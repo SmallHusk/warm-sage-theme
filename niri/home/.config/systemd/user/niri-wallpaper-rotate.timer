@@ -1,0 +1,9 @@
+[Unit]
+Description=Change the Niri wallpaper every 30 minutes
+PartOf=niri-desktop.target
+
+[Timer]
+OnActiveSec=30min
+OnUnitActiveSec=30min
+AccuracySec=30s
+Unit=niri-wallpaper-rotate.service

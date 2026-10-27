@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if ! dnd=$(timeout 2s swaync-client --skip-wait --get-dnd 2>/dev/null); then
+    jq -cn '{text:"", tooltip:"Notifications unavailable", class:"unavailable"}'
+elif [[ "$dnd" == "true" ]]; then
+    jq -cn '{text:"", tooltip:"Do not disturb · click for notification center; right-click to enable notifications", class:"dnd"}'
+else
+    jq -cn '{text:"", tooltip:"Click for notification center; right-click for do not disturb; middle-click to hide popups", class:"normal"}'
+fi

@@ -1,0 +1,7 @@
+# Lock after 10 minutes; turn off displays after 15 minutes.
+# The bar's eye icon temporarily inhibits idle timeouts.
+timeout 600 '~/.config/niri/scripts/lock-screen'
+timeout 900 'niri msg action power-off-monitors' resume 'niri msg action power-on-monitors'
+before-sleep '~/.config/niri/scripts/lock-screen'
+after-resume 'niri msg action power-on-monitors'
+lock '~/.config/niri/scripts/lock-screen'

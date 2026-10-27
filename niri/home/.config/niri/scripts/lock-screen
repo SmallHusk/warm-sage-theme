@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""Lock with the current Niri wallpaper, or the configured background color."""
+import os
+from pathlib import Path
+import sys
+
+state = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 'niri/wallpaper'
+command = ['swaylock', '-f']
+try:
+    current = state.read_text()
+    image = Path(current)
+    if current and image.is_file() and os.access(image, os.R_OK):
+        # The leading colon prevents colons in filenames being parsed as outputs.
+        command.extend(['--image', ':' + str(image)])
+except (OSError, UnicodeError, ValueError):
+    pass
+
+os.execvp(command[0], command + sys.argv[1:])

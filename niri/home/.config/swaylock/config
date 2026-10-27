@@ -1,0 +1,26 @@
+# Warm Sage: shared desktop palette; see ~/.config/niri/README.md.
+color=29231f
+scaling=fill
+font=Adwaita Sans
+font-size=22
+indicator-idle-visible
+indicator-radius=70
+indicator-thickness=5
+inside-color=352e29
+inside-clear-color=352e29
+inside-ver-color=352e29
+inside-wrong-color=352e29
+ring-color=65594e
+ring-clear-color=b7c99a
+ring-ver-color=b7c99a
+ring-wrong-color=d98478
+key-hl-color=b7c99a
+bs-hl-color=d98478
+separator-color=00000000
+line-uses-inside
+text-color=e8dfd1
+text-clear-color=e8dfd1
+text-ver-color=b7c99a
+text-wrong-color=d98478
+show-failed-attempts
+ignore-empty-password

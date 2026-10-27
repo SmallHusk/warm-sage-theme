@@ -1,0 +1,36 @@
+{
+  "$schema": "/etc/xdg/swaync/configSchema.json",
+  "ignore-gtk-theme": true,
+  "cssPriority": "user",
+  "positionX": "right",
+  "positionY": "top",
+  "layer": "overlay",
+  "control-center-layer": "top",
+  "control-center-margin-top": 54,
+  "control-center-margin-bottom": 10,
+  "control-center-margin-right": 10,
+  "control-center-margin-left": 10,
+  "control-center-width": 400,
+  "control-center-height": 640,
+  "notification-window-width": 380,
+  "fit-to-screen": false,
+  "timeout": 6,
+  "timeout-low": 4,
+  "timeout-critical": 0,
+  "relative-timestamps": true,
+  "keyboard-shortcuts": true,
+  "notification-grouping": true,
+  "hide-on-clear": false,
+  "hide-on-action": true,
+  "text-empty": "You're all caught up",
+  "widgets": ["title", "dnd", "notifications"],
+  "widget-config": {
+    "title": {
+      "text": "Notifications",
+      "clear-all-button": true,
+      "button-text": "Clear all"
+    },
+    "dnd": {"text": "Do not disturb"},
+    "notifications": {"vexpand": true}
+  }
+}

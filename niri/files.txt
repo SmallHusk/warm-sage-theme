@@ -2,9 +2,14 @@
 .config/fuzzel/fuzzel.ini
 .config/niri/README.md
 .config/niri/config.kdl
+.config/niri/calendar.css
+.config/niri/power.css
+.config/niri/power.json
 .config/niri/weather.css
 .config/niri/weather.json
 .config/niri/scripts/clipboard-history
+.config/niri/scripts/calendar-panel
+.config/niri/scripts/power-panel
 .config/niri/scripts/lock-screen
 .config/niri/scripts/notification-status
 .config/niri/scripts/satty-helper
@@ -20,7 +25,10 @@
 .config/swayosd/style.css
 .config/waybar/config.jsonc
 .config/waybar/style.css
+.config/waybar/WARM-SAGE-ICONS.md
+.config/waybar/FONT-AWESOME-LICENSE.txt
 .config/systemd/user/niri-clipboard.service
+.config/systemd/user/niri-battery.service
 .config/systemd/user/niri-desktop.target
 .config/systemd/user/niri-idle.service
 .config/systemd/user/niri-osd.service
@@ -32,6 +40,10 @@
 .config/systemd/user/blueman-manager.service.d/theme.conf
 .local/share/applications/blueman-manager.desktop
 .local/share/applications/niri-satty-clipboard.desktop
+.local/share/icons/hicolor/scalable/apps/warm-sage-discord.svg
+.local/share/icons/hicolor/scalable/apps/warm-sage-slack.svg
+.local/share/icons/hicolor/scalable/apps/warm-sage-bluetooth.svg
+.local/share/icons/hicolor/scalable/status/blueman-tray-symbolic.svg
 .local/share/themes/Warm-Sage/index.theme
 .local/share/themes/Warm-Sage/gtk-3.0/gtk.css
 .local/share/themes/Warm-Sage/gtk-3.0/gtk-dark.css

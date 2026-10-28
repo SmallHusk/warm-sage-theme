@@ -1,0 +1,40 @@
+window.power-window { background: transparent; }
+.power-panel {
+  background: rgba(53, 46, 41, 0.94);
+  color: #e8dfd1;
+  border: 1px solid #65594e;
+  border-radius: 16px;
+  padding: 20px;
+  font-family: "Adwaita Sans";
+  font-size: 13px;
+}
+.power-panel label { color: #e8dfd1; }
+.power-panel .title { font-size: 20px; font-weight: 700; }
+.power-panel .muted { color: #b2a496; font-size: 11px; }
+.power-panel .warning { color: #d4b477; font-size: 12px; }
+.power-panel .percentage { font-size: 40px; font-weight: 600; }
+.power-panel .battery-icon,
+.power-panel .profile-icon { font-family: "Font Awesome 6 Free Solid"; font-weight: 900; color: #b7c99a; }
+.power-panel .battery-icon { font-size: 42px; min-width: 64px; }
+.power-panel .profile-icon { font-size: 18px; min-width: 26px; }
+.power-panel progressbar { min-height: 7px; }
+.power-panel progressbar trough { background: #65594e; min-height: 7px; border: none; border-radius: 8px; }
+.power-panel progressbar progress { background: #b7c99a; min-height: 7px; border: none; border-radius: 8px; }
+.power-panel progressbar.critical progress { background: #d98478; }
+.power-panel .metric { background: #403831; border: 1px solid #65594e; border-radius: 10px; padding: 12px; }
+.power-panel .caption { color: #b2a496; font-size: 10px; }
+.power-panel .metric-value { font-size: 18px; font-weight: 600; }
+.power-panel .section-title { color: #b7c99a; font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-top: 4px; }
+.power-panel button { background: #403831; background-image: none; color: #e8dfd1; border: 1px solid #65594e; border-radius: 8px; box-shadow: none; padding: 6px; }
+.power-panel button:hover { background: #3f4938; border-color: #b7c99a; }
+.power-panel checkbutton.profile { background: rgba(64, 56, 49, 0.85); border: 1px solid #65594e; border-radius: 10px; padding: 12px; }
+.power-panel checkbutton.profile:hover { border-color: #b7c99a; }
+.power-panel checkbutton.profile.active { background: #3f4938; border-color: #b7c99a; }
+.power-panel checkbutton.profile:disabled { opacity: 0.6; }
+.power-panel checkbutton.profile check,
+.power-panel checkbutton.profile radio { margin-right: 10px; border: 1px solid #65594e; background: #29231f; background-image: none; color: #b2a496; }
+.power-panel checkbutton.profile check:checked,
+.power-panel checkbutton.profile radio:checked { background: #b7c99a; color: #29231f; border-color: #b7c99a; }
+.power-panel .profile-title { font-weight: 600; }
+.power-panel button:focus-visible, .power-panel checkbutton:focus-visible { outline: 2px solid #b7c99a; outline-offset: 2px; }
+.power-panel .hint { color: #b2a496; font-size: 10px; }

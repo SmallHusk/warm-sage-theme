@@ -84,12 +84,18 @@ The previous bar layout is backed up in
 `~/.local/state/niri-backups/20261026-020547-bar-layout/`.
 
 - Circle: applications. Workspace numbers: switch workspace.
+- Discord/Vesktop and Slack use sage icons from
+  `~/.local/share/icons/hicolor/scalable/apps/`, mapped by Waybar's `tray.icons`.
+  Blueman uses its native symbolic icons, colored sage by the tray CSS.
+  Messaging icon replacements can hide embedded badges; notifications remain
+  available in swaync. See `~/.config/waybar/WARM-SAGE-ICONS.md` for setup details.
 - Eye: keep awake; inhibits idle timeouts while enabled.
 - Bell: open notification center. Right-click: toggle do not disturb. Middle-click: hide popups.
 - Network: open connection settings.
 - Brightness: scroll to adjust in 5% steps, with a minimum of one backlight unit.
 - Volume: click for sound settings; right-click to mute; scroll to adjust.
-- Clock: click to change date format; hover for the calendar.
+- Battery: click for remaining time, battery health, power draw, and power profiles.
+- Clock: click to toggle the month calendar; hover for the full date.
 - Weather beside the clock: click for Rome's forecast; right-click to refresh.
 - Lock and power icons: lock or open the session menu.
 
@@ -119,6 +125,23 @@ through the media keys. Its translucent Warm Sage style and behavior are in
 `~/.config/swayosd/`. Restart it with `systemctl --user restart niri-osd.service`.
 Volume keys use 10% steps with a 100% cap; laptop brightness keys use 5% steps
 with a 1% minimum. The optional system-wide libinput backend is not used.
+
+The battery popup uses UPower and Fedora's existing TuneD/PPD power-profile API.
+It offers Power Saver, Balanced, and Performance when supported. Profile changes
+happen only when selected in the panel. Click the battery again, Escape, or the
+close button to dismiss it. Styling is in `~/.config/niri/power.css`.
+`niri-battery.service` sends low-battery notifications at 20% and critical
+notifications at 10%, once per level until charging or recovery above 25%.
+Thresholds and polling are in `~/.config/niri/power.json`; the helper is
+`~/.config/niri/scripts/power-panel`. Existing system critical-power actions and
+idle/locking policies are managed by UPower and swayidle respectively.
+
+Click the clock to toggle a Warm Sage calendar with Monday-first weeks,
+ISO week numbers, month navigation, and a highlight for today. Select a day
+to see its details; the copy button copies it as YYYY-MM-DD. Today or Home
+returns to the current date; Page Up/Down changes month; Escape closes the panel.
+Its script is `~/.config/niri/scripts/calendar-panel`, and its styling is in
+`~/.config/niri/calendar.css`. Opening calendar or weather closes the other panel.
 
 The weather icon shows Rome's current conditions and temperature in Celsius.
 Click it to toggle a Warm Sage panel with current conditions, six upcoming hours,

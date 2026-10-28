@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""A Warm Sage month calendar toggled by Waybar's clock."""
+import calendar
+from ctypes import CDLL
+from datetime import date, timedelta
+from pathlib import Path
+import subprocess
+import sys
+
+# Load layer shell before GTK's Wayland client dependency.
+CDLL('libgtk4-layer-shell.so.0')
+import gi
+gi.require_version('Gtk', '4.0')
+gi.require_version('Gdk', '4.0')
+gi.require_version('Gtk4LayerShell', '1.0')
+from gi.repository import Gdk, Gio, GLib, Gtk, Gtk4LayerShell
+
+
+def month_shift(day, offset):
+    year, month = divmod(day.year * 12 + day.month - 1 + offset, 12)
+    month += 1
+    return date(year, month, min(day.day, calendar.monthrange(year, month)[1]))
+
+
+def month_weeks(day):
+    start = day.replace(day=1)
+    start -= timedelta(days=start.weekday())
+    return [[start + timedelta(days=week * 7 + weekday) for weekday in range(7)] for week in range(6)]
+
+
+def close_weather():
+    try:
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        owned = bus.call_sync('org.freedesktop.DBus', '/org/freedesktop/DBus',
+                              'org.freedesktop.DBus', 'NameHasOwner',
+                              GLib.Variant('(s)', ('org.local.WarmSageWeather',)),
+                              GLib.VariantType.new('(b)'), Gio.DBusCallFlags.NONE, 1000, None)
+        if owned.unpack()[0]:
+            bus.call_sync('org.local.WarmSageWeather', '/org/local/WarmSageWeather',
+                          'org.freedesktop.Application', 'Activate', GLib.Variant('(a{sv})', ({},)),
+                          None, Gio.DBusCallFlags.NONE, 1000, None)
+    except GLib.Error:
+        pass
+
+
+class CalendarPanel(Gtk.Application):
+    def __init__(self):
+        super().__init__(application_id='org.local.WarmSageCalendar')
+        self.window = None
+        self.selected = date.today()
+        self.visible_month = self.selected.replace(day=1)
+        self.date_buttons = {}
+
+    def do_activate(self):
+        if self.window:
+            self.window.close()
+            return
+        close_weather()
+        provider = Gtk.CssProvider()
+        provider.load_from_path(str(Path.home() / '.config/niri/calendar.css'))
+        Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider,
+                                                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        self.window = Gtk.ApplicationWindow(application=self, title='Calendar')
+        self.window.set_default_size(420, -1)
+        self.window.set_resizable(False)
+        self.window.add_css_class('calendar-window')
+        Gtk4LayerShell.init_for_window(self.window)
+        Gtk4LayerShell.set_namespace(self.window, 'warm-sage-calendar')
+        Gtk4LayerShell.set_layer(self.window, Gtk4LayerShell.Layer.OVERLAY)
+        Gtk4LayerShell.set_exclusive_zone(self.window, -1)
+        Gtk4LayerShell.set_anchor(self.window, Gtk4LayerShell.Edge.TOP, True)
+        Gtk4LayerShell.set_margin(self.window, Gtk4LayerShell.Edge.TOP, 54)
+        Gtk4LayerShell.set_keyboard_mode(self.window, Gtk4LayerShell.KeyboardMode.ON_DEMAND)
+        keys = Gtk.EventControllerKey()
+        keys.connect('key-pressed', self.key_pressed)
+        self.window.add_controller(keys)
+        self.content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        self.content.add_css_class('calendar-panel')
+        self.window.set_child(self.content)
+        self.build()
+        self.window.present()
+        GLib.timeout_add_seconds(30, self.update_today)
+
+    @staticmethod
+    def label(text, css_class=None, expand=False):
+        widget = Gtk.Label(label=text, xalign=0)
+        widget.set_hexpand(expand)
+        if css_class:
+            widget.add_css_class(css_class)
+        return widget
+
+    def build(self):
+        header = Gtk.Box(spacing=8)
+        titles = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        titles.set_hexpand(True)
+        self.today_title = self.label('', 'title')
+        self.today_subtitle = self.label('', 'muted')
+        titles.append(self.today_title)
+        titles.append(self.today_subtitle)
+        header.append(titles)
+        close = Gtk.Button.new_from_icon_name('window-close-symbolic')
+        close.set_tooltip_text('Close · Escape')
+        close.connect('clicked', lambda button: self.window.close())
+        header.append(close)
+        self.content.append(header)
+
+        navigation = Gtk.Box(spacing=8)
+        self.previous = Gtk.Button.new_from_icon_name('go-previous-symbolic')
+        self.previous.set_tooltip_text('Previous month · Page Up')
+        self.previous.connect('clicked', lambda button: self.navigate(-1))
+        navigation.append(self.previous)
+        self.month_title = self.label('', 'month-title', True)
+        self.month_title.set_xalign(0.5)
+        navigation.append(self.month_title)
+        self.next = Gtk.Button.new_from_icon_name('go-next-symbolic')
+        self.next.set_tooltip_text('Next month · Page Down')
+        self.next.connect('clicked', lambda button: self.navigate(1))
+        navigation.append(self.next)
+        today = Gtk.Button(label='Today')
+        today.set_tooltip_text('Return to today · Home')
+        today.connect('clicked', lambda button: self.go_today())
+        navigation.append(today)
+        self.content.append(navigation)
+
+        self.grid = Gtk.Grid(column_spacing=4, row_spacing=4)
+        self.grid.add_css_class('month-grid')
+        self.content.append(self.grid)
+
+        footer = Gtk.Box(spacing=10)
+        footer.add_css_class('date-details')
+        details = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        details.set_hexpand(True)
+        self.selection_title = self.label('', 'selection-title')
+        self.selection_meta = self.label('', 'muted')
+        details.append(self.selection_title)
+        details.append(self.selection_meta)
+        footer.append(details)
+        self.copy_button = Gtk.Button.new_from_icon_name('edit-copy-symbolic')
+        self.copy_button.set_tooltip_text('Copy selected date as YYYY-MM-DD')
+        self.copy_button.connect('clicked', self.copy_date)
+        footer.append(self.copy_button)
+        self.content.append(footer)
+        self.content.append(self.label('Select a day · Page Up / Down changes month', 'hint'))
+        self.refresh_grid()
+        self.update_today()
+
+    def refresh_grid(self):
+        child = self.grid.get_first_child()
+        while child:
+            following = child.get_next_sibling()
+            self.grid.remove(child)
+            child = following
+        self.month_title.set_label(self.visible_month.strftime('%B %Y'))
+        self.previous.set_sensitive((self.visible_month.year, self.visible_month.month) > (2, 1))
+        self.next.set_sensitive((self.visible_month.year, self.visible_month.month) < (9998, 12))
+        self.grid.attach(self.label('Wk', 'weekday'), 0, 0, 1, 1)
+        for column, name in enumerate(('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'), 1):
+            heading = self.label(name, 'weekday')
+            heading.set_xalign(0.5)
+            heading.set_hexpand(True)
+            self.grid.attach(heading, column, 0, 1, 1)
+        self.date_buttons = {}
+        for row, week in enumerate(month_weeks(self.visible_month), 1):
+            self.grid.attach(self.label(str(week[0].isocalendar().week), 'week-number'), 0, row, 1, 1)
+            for column, day in enumerate(week, 1):
+                button = Gtk.Button(label=str(day.day))
+                button.set_hexpand(True)
+                button.add_css_class('day')
+                if day.month != self.visible_month.month:
+                    button.add_css_class('outside-month')
+                elif day.weekday() >= 5:
+                    button.add_css_class('weekend')
+                button.set_tooltip_text(day.strftime('%A, %d %B %Y'))
+                button.connect('clicked', lambda widget, value=day: self.select(value))
+                self.date_buttons[day] = button
+                self.grid.attach(button, column, row, 1, 1)
+        self.update_selection()
+
+    def update_selection(self):
+        today = date.today()
+        for day, button in self.date_buttons.items():
+            for css_class, enabled in (('today', day == today), ('selected', day == self.selected)):
+                if enabled:
+                    button.add_css_class(css_class)
+                else:
+                    button.remove_css_class(css_class)
+        self.selection_title.set_label(self.selected.strftime('%A, %d %B'))
+        self.selection_meta.set_label(f'{self.selected.year} · Week {self.selected.isocalendar().week} · Day {self.selected.timetuple().tm_yday}')
+        self.copy_button.set_icon_name('edit-copy-symbolic')
+
+    def update_today(self):
+        today = date.today()
+        self.today_title.set_label(today.strftime('%A'))
+        self.today_subtitle.set_label(today.strftime('%d %B %Y'))
+        self.update_selection()
+        return True
+
+    def select(self, day):
+        self.selected = day
+        month = day.replace(day=1)
+        if month != self.visible_month:
+            self.visible_month = month
+            self.refresh_grid()
+        else:
+            self.update_selection()
+
+    def navigate(self, offset):
+        new_month = month_shift(self.visible_month, offset)
+        if not 2 <= new_month.year <= 9998:
+            return
+        self.visible_month = new_month
+        self.refresh_grid()
+
+    def go_today(self):
+        self.select(date.today())
+
+    def copy_date(self, button):
+        try:
+            subprocess.run(['wl-copy', '--type', 'text/plain;charset=utf-8'],
+                           input=self.selected.isoformat(), text=True, check=True, timeout=3)
+        except (OSError, subprocess.SubprocessError):
+            self.copy_button.set_tooltip_text('Could not copy the date')
+        else:
+            self.copy_button.set_icon_name('object-select-symbolic')
+            self.copy_button.set_tooltip_text(f'Copied {self.selected.isoformat()}')
+
+    def key_pressed(self, controller, keyval, keycode, state):
+        if keyval == Gdk.KEY_Escape:
+            self.window.close()
+        elif keyval == Gdk.KEY_Page_Up:
+            self.navigate(-1)
+        elif keyval == Gdk.KEY_Page_Down:
+            self.navigate(1)
+        elif keyval == Gdk.KEY_Home:
+            self.go_today()
+        else:
+            return False
+        return True
+
+
+if __name__ == '__main__':
+    sys.exit(CalendarPanel().run(sys.argv))

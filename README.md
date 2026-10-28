@@ -64,8 +64,9 @@ See [firefox/README.md](firefox/README.md) for details.
 ### Niri desktop
 
 The [niri bundle](niri/README.md) contains the current Fedora desktop configs,
-including Waybar, Alacritty, Fuzzel, swaync, SwayOSD, Blueman, weather, locking,
-wallpaper rotation, screenshot tools, and supporting user services. Its `home/`
+including Waybar, Alacritty, Fuzzel, swaync, SwayOSD, Blueman, calendar and weather
+panels, battery management and alerts, locking, wallpaper rotation, screenshot
+tools, and supporting user services. Its `home/`
 tree mirrors the installation paths. See the bundle's installation notes for
 hardware defaults and `python3 niri/sync.py` to capture later desktop changes.
 

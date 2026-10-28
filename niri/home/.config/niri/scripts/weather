@@ -138,8 +138,23 @@ def panel(config):
     CDLL('libgtk4-layer-shell.so.0')
     import gi
     gi.require_version('Gtk', '4.0')
+    gi.require_version('Gdk', '4.0')
     gi.require_version('Gtk4LayerShell', '1.0')
-    from gi.repository import Gtk, Gdk, GLib, Gtk4LayerShell
+    from gi.repository import Gtk, Gdk, Gio, GLib, Gtk4LayerShell
+
+    def close_calendar():
+        try:
+            bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+            owned = bus.call_sync('org.freedesktop.DBus', '/org/freedesktop/DBus',
+                                  'org.freedesktop.DBus', 'NameHasOwner',
+                                  GLib.Variant('(s)', ('org.local.WarmSageCalendar',)),
+                                  GLib.VariantType.new('(b)'), Gio.DBusCallFlags.NONE, 1000, None)
+            if owned.unpack()[0]:
+                bus.call_sync('org.local.WarmSageCalendar', '/org/local/WarmSageCalendar',
+                              'org.freedesktop.Application', 'Activate', GLib.Variant('(a{sv})', ({},)),
+                              None, Gio.DBusCallFlags.NONE, 1000, None)
+        except GLib.Error:
+            pass
 
     def label(text, css_class=None, expand=False):
         widget = Gtk.Label(label=str(text), xalign=0)
@@ -161,6 +176,7 @@ def panel(config):
             if self.window:
                 self.window.close()
                 return
+            close_calendar()
             provider = Gtk.CssProvider()
             provider.load_from_path(str(CONFIG_DIR / 'weather.css'))
             Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)

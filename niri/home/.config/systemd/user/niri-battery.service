@@ -1,0 +1,11 @@
+[Unit]
+Description=Warm Sage low-battery notifications
+PartOf=niri-desktop.target
+After=graphical-session.target swaync.service
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=%h/.config/niri/scripts/power-panel --monitor
+Restart=on-failure
+RestartSec=5
+UMask=0077

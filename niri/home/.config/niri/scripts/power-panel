@@ -1,0 +1,346 @@
+#!/usr/bin/env python3
+"""Warm Sage battery panel, power-profile controls, and low-battery alerts."""
+import argparse
+from datetime import datetime
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import threading
+import time
+
+import gi
+gi.require_version('Gio', '2.0')
+from gi.repository import Gio, GLib
+
+CONFIG = Path.home() / '.config/niri'
+STATE = Path(os.environ.get('XDG_STATE_HOME', str(Path.home()/'.local/state'))) / 'niri/battery-alerts.json'
+PROFILE_APIS = (
+    ('org.freedesktop.UPower.PowerProfiles', '/org/freedesktop/UPower/PowerProfiles'),
+    ('net.hadess.PowerProfiles', '/net/hadess/PowerProfiles'),
+)
+PROFILE_NAMES = {'power-saver': ('Power Saver', 'Longer battery life', ''),
+                 'balanced': ('Balanced', 'Everyday use', ''),
+                 'performance': ('Performance', 'Prioritize speed', '')}
+STATES = {0: 'Unknown', 1: 'Charging', 2: 'Discharging', 3: 'Empty',
+          4: 'Fully charged', 5: 'Waiting to charge', 6: 'Waiting to discharge'}
+
+
+def config():
+    values = json.loads((CONFIG/'power.json').read_text())
+    if not 0 < values['critical_percent'] < values['low_percent'] <= 100:
+        raise ValueError('Battery thresholds must satisfy 0 < critical < low <= 100')
+    if values['refresh_seconds'] < 5:
+        raise ValueError('Battery refresh interval must be at least 5 seconds')
+    return values
+
+
+def call(bus, name, path, interface, method, parameters=None):
+    return bus.call_sync(name, path, interface, method, parameters, None,
+                         Gio.DBusCallFlags.NONE, 5000, None).unpack()
+
+
+def properties(bus, name, path, interface):
+    return call(bus, name, path, 'org.freedesktop.DBus.Properties', 'GetAll',
+                GLib.Variant('(s)', (interface,)))[0]
+
+
+def read_status(include_profiles=True):
+    bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
+    devices = call(bus, 'org.freedesktop.UPower', '/org/freedesktop/UPower',
+                   'org.freedesktop.UPower', 'EnumerateDevices')[0]
+    batteries = []
+    for path in devices:
+        values = properties(bus, 'org.freedesktop.UPower', path, 'org.freedesktop.UPower.Device')
+        if values.get('Type') == 2 and values.get('PowerSupply') and values.get('IsPresent', True):
+            batteries.append(values)
+    if not batteries:
+        raise RuntimeError('No laptop battery was detected')
+    # Prefer the configured laptop battery while ignoring headset/mouse batteries.
+    battery = next((item for item in batteries if item.get('NativePath') == 'BAT1'), batteries[0])
+    result = {'battery': battery, 'profiles': {}, 'profile_api': None}
+    if include_profiles:
+        for name, path in PROFILE_APIS:
+            try:
+                result['profiles'] = properties(bus, name, path, name)
+                result['profile_api'] = (name, path)
+                break
+            except GLib.Error:
+                continue
+    return result
+
+
+def set_profile(api, profile):
+    if profile not in PROFILE_NAMES:
+        raise ValueError('Unknown power profile')
+    name, path = api
+    bus = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
+    call(bus, name, path, 'org.freedesktop.DBus.Properties', 'Set',
+         GLib.Variant('(ssv)', (name, 'ActiveProfile', GLib.Variant('s', profile))))
+
+
+def remaining(seconds):
+    if not isinstance(seconds, (int, float)) or seconds <= 0:
+        return 'Estimating remaining time'
+    minutes = max(1, round(seconds / 60))
+    hours, minutes = divmod(minutes, 60)
+    return f'{hours}h {minutes:02d}m' if hours else f'{minutes} min'
+
+
+def alert_level(battery, settings):
+    if battery.get('State') != 2:
+        return 0
+    percentage = battery.get('Percentage', 100)
+    if percentage <= settings['critical_percent']:
+        return 2
+    return 1 if percentage <= settings['low_percent'] else 0
+
+
+def monitor(settings):
+    try:
+        notified = int(json.loads(STATE.read_text()).get('notified', 0))
+    except (OSError, ValueError, TypeError):
+        notified = 0
+    while True:
+        try:
+            battery = read_status(include_profiles=False)['battery']
+            level = alert_level(battery, settings)
+            if battery.get('State') in (1, 4, 5) or battery.get('Percentage', 0) > settings['low_percent'] + 5:
+                notified = 0
+            if level > notified:
+                percentage = round(battery['Percentage'])
+                title = f'Battery {"critical" if level == 2 else "low"}: {percentage}%'
+                body = 'Connect your charger to keep working.'
+                if battery.get('TimeToEmpty', 0) > 0:
+                    body = f'About {remaining(battery["TimeToEmpty"])} remaining. ' + body
+                subprocess.run(['notify-send', '--app-name=Battery', '--icon=battery-caution-symbolic',
+                                '--urgency=' + ('critical' if level == 2 else 'normal'),
+                                '--expire-time=' + ('0' if level == 2 else '10000'),
+                                title, body], check=True, timeout=5)
+                notified = level
+            STATE.parent.mkdir(parents=True, exist_ok=True)
+            temporary = STATE.with_suffix('.tmp')
+            temporary.write_text(json.dumps({'notified': notified}))
+            temporary.replace(STATE)
+        except (GLib.Error, OSError, RuntimeError, ValueError, subprocess.SubprocessError) as error:
+            print(f'Battery monitor: {error}', file=sys.stderr, flush=True)
+        time.sleep(settings['refresh_seconds'])
+
+
+def panel(settings):
+    from ctypes import CDLL
+    CDLL('libgtk4-layer-shell.so.0')
+    gi.require_version('Gtk', '4.0')
+    gi.require_version('Gdk', '4.0')
+    gi.require_version('Gtk4LayerShell', '1.0')
+    from gi.repository import Gtk, Gdk, Gtk4LayerShell
+
+    def label(text, style=None, expand=False):
+        result = Gtk.Label(label=str(text), xalign=0)
+        result.set_hexpand(expand)
+        if style:
+            result.add_css_class(style)
+        return result
+
+    def box(spacing=8, vertical=False):
+        return Gtk.Box(orientation=Gtk.Orientation.VERTICAL if vertical else Gtk.Orientation.HORIZONTAL, spacing=spacing)
+
+    class PowerPanel(Gtk.Application):
+        def __init__(self):
+            super().__init__(application_id='org.local.WarmSagePower')
+            self.window = None
+            self.busy = False
+            self.last = None
+
+        def do_activate(self):
+            if self.window:
+                self.window.close()
+                return
+            provider = Gtk.CssProvider()
+            provider.load_from_path(str(CONFIG/'power.css'))
+            Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider,
+                                                     Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            self.window = Gtk.ApplicationWindow(application=self, title='Battery & Power')
+            self.window.add_css_class('power-window')
+            self.window.set_default_size(400, -1)
+            self.window.set_resizable(False)
+            Gtk4LayerShell.init_for_window(self.window)
+            Gtk4LayerShell.set_namespace(self.window, 'warm-sage-power')
+            Gtk4LayerShell.set_layer(self.window, Gtk4LayerShell.Layer.OVERLAY)
+            Gtk4LayerShell.set_exclusive_zone(self.window, -1)
+            Gtk4LayerShell.set_anchor(self.window, Gtk4LayerShell.Edge.TOP, True)
+            Gtk4LayerShell.set_anchor(self.window, Gtk4LayerShell.Edge.RIGHT, True)
+            Gtk4LayerShell.set_margin(self.window, Gtk4LayerShell.Edge.TOP, 54)
+            Gtk4LayerShell.set_margin(self.window, Gtk4LayerShell.Edge.RIGHT, 10)
+            Gtk4LayerShell.set_keyboard_mode(self.window, Gtk4LayerShell.KeyboardMode.ON_DEMAND)
+            keys = Gtk.EventControllerKey()
+            keys.connect('key-pressed', self.key_pressed)
+            self.window.add_controller(keys)
+            self.content = box(14, vertical=True)
+            self.content.add_css_class('power-panel')
+            self.window.set_child(self.content)
+            self.render(None)
+            self.window.present()
+            self.refresh()
+            GLib.timeout_add_seconds(15, self.tick)
+
+        def key_pressed(self, controller, key, keycode, state):
+            if key == Gdk.KEY_Escape:
+                self.window.close()
+                return True
+            return False
+
+        def tick(self):
+            self.refresh()
+            return True
+
+        def refresh(self):
+            if self.busy:
+                return
+            self.busy = True
+            def worker():
+                try:
+                    status, error = read_status(), None
+                except (GLib.Error, RuntimeError) as failure:
+                    status, error = None, str(failure)
+                GLib.idle_add(self.finished, status, error)
+            threading.Thread(target=worker, daemon=True).start()
+
+        def finished(self, status, error):
+            self.busy = False
+            if self.window and self.window.get_visible():
+                if status:
+                    self.last = status
+                self.render(self.last, error)
+            return False
+
+        def change_profile(self, button, profile, api):
+            if not button.get_active() or self.busy or self.last['profiles'].get('ActiveProfile') == profile:
+                return
+            self.busy = True
+            self.render(self.last)
+            def worker():
+                try:
+                    set_profile(api, profile)
+                    status, error = read_status(), None
+                except (GLib.Error, RuntimeError, ValueError):
+                    status, error = self.last, 'Could not change the power profile. Authorization may be required.'
+                GLib.idle_add(self.finished, status, error)
+            threading.Thread(target=worker, daemon=True).start()
+
+        def render(self, status, error=None):
+            child = self.content.get_first_child()
+            while child:
+                following = child.get_next_sibling()
+                self.content.remove(child)
+                child = following
+            header = box()
+            header.append(label('Battery & Power', 'title', True))
+            close = Gtk.Button.new_from_icon_name('window-close-symbolic')
+            close.set_tooltip_text('Close · Escape')
+            close.connect('clicked', lambda button: self.window.close())
+            header.append(close)
+            self.content.append(header)
+            if error:
+                message = label(error, 'warning')
+                message.set_wrap(True)
+                self.content.append(message)
+            if status:
+                self.details(status)
+            else:
+                self.content.append(label('Reading battery…' if not error else 'Battery unavailable', 'muted'))
+
+        def details(self, status):
+            battery = status['battery']
+            percent = battery.get('Percentage', 0)
+            state = battery.get('State', 0)
+            hero = box(18)
+            icon = '' if state == 1 else ['','','','',''][min(4, max(0, int(percent/25)))]
+            hero.append(label(icon, 'battery-icon'))
+            detail = box(3, vertical=True)
+            detail.append(label(f'{percent:.0f}%', 'percentage'))
+            detail.append(label(STATES.get(state, 'Unknown')))
+            seconds = battery.get('TimeToFull', 0) if state == 1 else battery.get('TimeToEmpty', 0)
+            description = ('Fully charged' if state == 4 else
+                           remaining(seconds) + (' until full' if state == 1 and seconds > 0 else ' remaining' if seconds > 0 else ''))
+            detail.append(label(description, 'muted'))
+            hero.append(detail)
+            self.content.append(hero)
+            progress = Gtk.ProgressBar(fraction=min(1, max(0, percent/100)))
+            if percent <= settings['critical_percent'] and state == 2:
+                progress.add_css_class('critical')
+            self.content.append(progress)
+
+            metrics = box()
+            for title, value in [('BATTERY HEALTH', f'{battery["Capacity"]:.0f}%' if battery.get('Capacity',0)>0 else 'Unavailable'),
+                                 ('CHARGE RATE' if state == 1 else 'POWER DRAW', f'{abs(battery["EnergyRate"]):.1f} W' if battery.get('EnergyRate',0) else 'Estimating')]:
+                metric = box(5, vertical=True)
+                metric.add_css_class('metric')
+                metric.set_hexpand(True)
+                metric.append(label(title, 'caption'))
+                metric.append(label(value, 'metric-value'))
+                metrics.append(metric)
+            self.content.append(metrics)
+            if battery.get('EnergyFull',0)>0 and battery.get('EnergyFullDesign',0)>0:
+                self.content.append(label(f'Full capacity {battery["EnergyFull"]:.1f} Wh · Design {battery["EnergyFullDesign"]:.1f} Wh', 'muted'))
+
+            self.content.append(label('POWER PROFILE', 'section-title'))
+            available = {profile['Profile'] for profile in status['profiles'].get('Profiles', [])}
+            group = None
+            for profile, (title, description, symbol) in PROFILE_NAMES.items():
+                if profile not in available:
+                    continue
+                button = Gtk.CheckButton()
+                if group:
+                    button.set_group(group)
+                else:
+                    group = button
+                button.add_css_class('profile')
+                active = status['profiles'].get('ActiveProfile') == profile
+                if active:
+                    button.add_css_class('active')
+                body = box(12)
+                body.append(label(symbol, 'profile-icon'))
+                text = box(2, vertical=True)
+                text.append(label(title, 'profile-title'))
+                text.append(label(description, 'muted'))
+                body.append(text)
+                button.set_child(body)
+                button.set_active(active)
+                button.set_sensitive(not self.busy)
+                button.connect('toggled', self.change_profile, profile, status['profile_api'])
+                self.content.append(button)
+            if not available:
+                self.content.append(label('Power profile service unavailable', 'muted'))
+            degraded = status['profiles'].get('PerformanceDegraded')
+            if degraded:
+                self.content.append(label('Performance limited: ' + degraded.replace('-', ' '), 'warning'))
+            self.content.append(label(f'Alerts at {settings["low_percent"]}% and {settings["critical_percent"]}% · Updated {datetime.now():%H:%M}', 'hint'))
+
+    return PowerPanel().run([sys.argv[0]])
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--monitor', action='store_true', help='Watch for low-battery alerts')
+    parser.add_argument('--status', action='store_true', help='Print battery and profile data as JSON')
+    args = parser.parse_args()
+    settings = config()
+    if args.monitor:
+        monitor(settings)
+    elif args.status:
+        # Do not include identifying hardware properties in command output.
+        status = read_status()
+        battery = status['battery']
+        print(json.dumps({'percentage': battery.get('Percentage'), 'state': STATES.get(battery.get('State'), 'Unknown'),
+                          'health': battery.get('Capacity'), 'time_to_empty': battery.get('TimeToEmpty'),
+                          'profile': status['profiles'].get('ActiveProfile'),
+                          'available_profiles': [p['Profile'] for p in status['profiles'].get('Profiles', [])]}))
+    else:
+        return panel(settings)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

@@ -62,8 +62,8 @@
     },
     "clock": {
         "format": "{:%a %d %b  ·  %H:%M}",
-        "format-alt": "{:%Y-%m-%d  ·  %H:%M}",
-        "tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>"
+        "on-click": "~/.config/niri/scripts/calendar-panel",
+        "tooltip-format": "{:%A, %d %B %Y}\nClick to open the calendar"
     },
     "custom/weather": {
         "exec": "~/.config/niri/scripts/weather --bar",
@@ -76,7 +76,12 @@
     },
     "tray": {
         "icon-size": 16,
-        "spacing": 8
+        "spacing": 8,
+        "icons": {
+            "discord_status_icon_1": "warm-sage-discord",
+            "vesktop_status_icon_1": "warm-sage-discord",
+            "Slack_status_icon_1": "warm-sage-slack"
+        }
     },
     "idle_inhibitor": {
         "format": "{icon}",
@@ -144,7 +149,8 @@
             "",
             ""
         ],
-        "tooltip-format": "{capacity}% · {timeTo}"
+        "tooltip-format": "{capacity}% · {timeTo}\nClick: battery and power profiles",
+        "on-click": "~/.config/niri/scripts/power-panel"
     },
     "custom/lock": {
         "format": "",

@@ -9,7 +9,10 @@ user's home directory and retain executable permissions for the helper scripts.
 | Component | Configuration |
 | --- | --- |
 | Niri | Window layout, focus borders, rounded corners, shortcuts |
-| Waybar | Bar layout, styles, media controls, notifications, weather |
+| Waybar | Bar layout, styles, media controls, notifications, calendar, weather |
+| Tray icons | Sage Discord, Slack, and Bluetooth symbols, with upstream attribution |
+| Calendar | Clock popup with month navigation, ISO week numbers, today highlight, and date copying |
+| Battery and power | Battery popup, TuneD/PPD profile selection, low/critical battery notifications |
 | Alacritty and Fuzzel | Terminal, application launcher, clipboard and session menus |
 | swaync | Notification popups, history panel, do not disturb |
 | SwayOSD | Volume, microphone, brightness, and playback overlays |
@@ -29,6 +32,8 @@ the corresponding existing files before copying them. Run from this directory:
 
 ```sh
 cp -a home/. "$HOME/"
+gtk-update-icon-cache --force --ignore-theme-index "$HOME/.local/share/icons/hicolor"
+gsettings set org.blueman.general symbolic-status-icons true
 systemctl --user daemon-reload
 systemctl --user enable niri-desktop.target
 systemctl --user mask --now mako.service
@@ -45,6 +50,9 @@ network-manager-applet, mate-polkit, libnotify, and fd-find. The weather panel
 also needs Python 3, python3-requests, python3-gobject, gtk4, and gtk4-layer-shell
 with its introspection bindings. Fonts are Adwaita Sans, Adwaita Mono, and
 Font Awesome 6 Free, including the Solid face.
+
+The battery panel uses UPower and the existing power-profile service. On Fedora
+44 this is provided by `upower`, `tuned`, and `tuned-ppd`.
 
 The niri session also uses xwayland-satellite, xdg-desktop-portal-gtk,
 xdg-desktop-portal-gnome, gnome-keyring, and Nautilus. Package availability and
@@ -69,6 +77,12 @@ Desktop panels, the launcher, and the terminal have transparent backgrounds;
 normal application windows retain their own rendering. The Blueman GTK theme
 is applied through its launcher and user-service override.
 
+Waybar maps Discord/Vesktop and Slack to custom sage SVGs in
+`home/.local/share/icons/hicolor/scalable/apps/`. Blueman uses its native symbolic
+icons with sage tray styling. The custom icons' attribution and license are in
+`home/.config/waybar/`. Fixed messaging icons can hide embedded notification badges;
+remove the relevant `tray.icons` mapping to use the application's icon again.
+
 ## Update the snapshot
 
 After editing the live desktop, run from the repository root:
@@ -90,7 +104,20 @@ clipboard history, wallpapers, local backup archives, runtime state, and service
 enablement symlinks are not part of the snapshot. Installation recreates the
 target enablement and mako mask with systemctl.
 
-## Weather controls
+## Battery, calendar, and weather controls
+
+The battery icon opens a power panel with charge, remaining time, health, power
+draw, and the profiles exposed by TuneD/PPD. Low-battery alerts run through
+`niri-battery.service`: 20% low and 10% critical by default, once per level per
+discharge cycle. Configure the thresholds in `home/.config/niri/power.json`.
+The monitor uses the existing system critical-power policy and does not set
+automatic profile changes.
+
+Click the clock to toggle the themed calendar popup. It uses Monday-first weeks
+and ISO week numbers. Select a date and use the copy button to copy YYYY-MM-DD.
+Today or Home returns to today; Page Up/Down changes month; Escape closes the
+panel. Its style is `home/.config/niri/calendar.css`. Calendar and weather share
+the popup space: opening either closes the other.
 
 The condition icon and temperature sit beside the clock. Click to toggle the
 forecast panel; right-click to refresh. The panel shows current conditions,

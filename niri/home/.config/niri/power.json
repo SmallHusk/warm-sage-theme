@@ -1,0 +1,5 @@
+{
+  "low_percent": 20,
+  "critical_percent": 10,
+  "refresh_seconds": 30
+}

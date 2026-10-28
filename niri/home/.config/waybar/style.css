@@ -78,6 +78,8 @@ tooltip label { padding: 6px; }
 #mpris.stopped { padding: 0; margin: 0; border: none; }
 #mpris:hover { color: @text; }
 #clock { font-weight: 600; }
+#tray { color: @sage; }
+#clock:hover { background: @surface; color: @sage; }
 #custom-weather {
     color: @sage;
     font-weight: bold;
